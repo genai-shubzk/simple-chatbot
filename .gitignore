@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+.vercel/
+
+# Do NOT ignore chroma_db/ — it must be committed for Vercel to bundle it

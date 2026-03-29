@@ -1,0 +1,5 @@
+# Dev-only dependencies for running reindex.py locally
+-r requirements.txt
+langchain-community>=0.3.0
+langchain-text-splitters>=0.3.0
+docx2txt>=0.8
