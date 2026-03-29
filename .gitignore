@@ -2,5 +2,6 @@
 __pycache__/
 *.pyc
 .vercel/
+chroma_db/
 
-# Do NOT ignore chroma_db/ — it must be committed for Vercel to bundle it
+# data/embeddings.json must be committed — do NOT add data/ here
