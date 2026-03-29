@@ -5,6 +5,7 @@ Vercel Python Serverless Function — POST /api/chat
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import shutil
 from pathlib import Path
 
 from langchain_chroma import Chroma
@@ -14,9 +15,21 @@ from langchain_core.output_parsers import StrOutputParser
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 
-BASE_DIR = Path(__file__).parent.parent
-CHROMA_DIR = str(BASE_DIR / "chroma_db")
+BASE_DIR        = Path(__file__).parent.parent
+_CHROMA_SRC     = BASE_DIR / "chroma_db"        # bundled (read-only on Vercel)
+_CHROMA_TMP     = Path("/tmp/chroma_db")         # writable copy at runtime
 COLLECTION_NAME = "technova_policies"
+
+
+def _chroma_dir() -> str:
+    """
+    ChromaDB needs a writable directory even for reads (SQLite WAL files).
+    On Vercel the bundle is read-only, so we copy it to /tmp on cold start.
+    Subsequent warm invocations reuse the copy already in /tmp.
+    """
+    if not _CHROMA_TMP.exists():
+        shutil.copytree(str(_CHROMA_SRC), str(_CHROMA_TMP))
+    return str(_CHROMA_TMP)
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
 
@@ -55,7 +68,7 @@ def _init():
         api_key=os.environ["OPENAI_API_KEY"],
     )
     vectorstore = Chroma(
-        persist_directory=CHROMA_DIR,
+        persist_directory=_chroma_dir(),
         embedding_function=embeddings,
         collection_name=COLLECTION_NAME,
     )
